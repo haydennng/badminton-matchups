@@ -1,0 +1,2 @@
+# Core dependencies for badminton matchup manager
+# No external dependencies needed for initial version - using only Python standard library
