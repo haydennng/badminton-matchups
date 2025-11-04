@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Player Stats - Badminton Manager{% endblock %}
+{% block page_id %}stats{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Player Statistics</h1>
+    <p>Comprehensive performance analysis across all sessions</p>
+</div>
+
+<section class="stats-sections">
+    <!-- Player Win Rates Section -->
+    <div class="chart-section" id="section-winrates">
+        <h2>Player Win Rates</h2>
+        <div class="chart-grid">
+            <div class="chart-card">
+                <h3>Highest Win Rates</h3>
+                <div class="chart-canvas-wrapper">
+                    <canvas id="chartWinrateTop"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>Lowest Win Rates</h3>
+                <div class="chart-canvas-wrapper">
+                    <canvas id="chartWinrateBottom"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Player Money Performance Section -->
+    <div class="chart-section" id="section-money">
+        <h2>Player Money Performance</h2>
+        <div class="chart-grid">
+            <div class="chart-card">
+                <h3>Top Earners</h3>
+                <div class="chart-canvas-wrapper">
+                    <canvas id="chartMoneyTop"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>Biggest Losers</h3>
+                <div class="chart-canvas-wrapper">
+                    <canvas id="chartMoneyBottom"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Partnership Performance Section -->
+    <div class="chart-section" id="section-partnerships">
+        <h2>Partnership Performance</h2>
+        <p class="section-subtitle">Win rates for player partnerships • Hover to see games played and combined earnings</p>
+        <div class="chart-grid">
+            <div class="chart-card">
+                <h3>Best Partnerships</h3>
+                <div class="chart-canvas-wrapper">
+                    <canvas id="chartPartnerTop"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>Worst Partnerships</h3>
+                <div class="chart-canvas-wrapper">
+                    <canvas id="chartPartnerBottom"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>console.log('[TEST] extra_js block is rendering!');</script>
+<!-- Chart.js - local copy, load synchronously -->
+<script src="{{ url_for('static', filename='js/chart.min.js') }}"></script>
+<script>
+console.log('[DEBUG] Chart.js script tag executed');
+console.log('[DEBUG] Chart type:', typeof Chart);
+if (typeof Chart !== 'undefined') {
+    console.log('[DEBUG] Chart.js SUCCESS! Version:', Chart.version);
+} else {
+    console.error('[DEBUG] Chart.js FAILED TO LOAD!');
+}
+</script>
+{% endblock %}
+
+{% block main_js %}
+<!-- Load main.js after Chart.js is ready -->
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% endblock %}

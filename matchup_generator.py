@@ -2,8 +2,9 @@
 Matchup Generator for Fair 2v2 Badminton Games
 
 This module generates balanced matchups ensuring:
-- Players rotate partners evenly
-- Players face different opponents
+- Equal playing time (minimizes players sitting out multiple times) - HIGHEST PRIORITY
+- Players rotate partners evenly - SECOND PRIORITY
+- Players face different opponents - THIRD PRIORITY
 - Fair distribution across multiple games
 """
 
@@ -11,6 +12,15 @@ import itertools
 import random
 from typing import List, Tuple, Set
 from collections import defaultdict
+
+# Scoring weights for matchup priority (lower scores are better)
+# These weights determine the priority order when selecting matchups:
+# 1. Equal playing time (sit-out balance) - dominant factor
+# 2. Partnership variety (new partners) - secondary factor
+# 3. Opponent variety - tertiary factor (tie-breaker)
+SITOUT_WEIGHT = 100
+PARTNERSHIP_WEIGHT = 5
+OPPONENT_WEIGHT = 1
 
 
 class MatchupGenerator:
@@ -27,6 +37,7 @@ class MatchupGenerator:
         self.players = players
         self.partnership_count = defaultdict(int)
         self.opponent_count = defaultdict(int)
+        self.sitout_count = defaultdict(int)  # Track how many times each player sits out
         
     def _get_pair_key(self, player1: str, player2: str) -> Tuple[str, str]:
         """Create a sorted tuple key for a pair of players."""
@@ -35,10 +46,20 @@ class MatchupGenerator:
     def _score_matchup(self, team1: Tuple[str, str], team2: Tuple[str, str]) -> float:
         """
         Score a potential matchup based on how balanced it is.
-        Lower scores are better (less repeated pairings).
+        Lower scores are better.
+        
+        Priority order (enforced by weight multipliers):
+        1. Equal playing time - strongly prefers players who sat out recently
+        2. Partnership variety - prefers new partner combinations
+        3. Opponent variety - minor tie-breaker for otherwise equal matchups
+        
+        The exponential sit-out penalty ensures players who sat out last game
+        are strongly preferred for the next game.
         """
         p1, p2 = team1
         p3, p4 = team2
+        playing_players = {p1, p2, p3, p4}
+        sitting_players = set(self.players) - playing_players
         
         # Count how many times these partnerships have occurred
         partnership_score = (
@@ -54,13 +75,30 @@ class MatchupGenerator:
             self.opponent_count[self._get_pair_key(p2, p4)]
         )
         
-        # Combine scores (weight partnerships more heavily)
-        return partnership_score * 2 + opponent_score
+        # Calculate sit-out penalty: heavily penalize players sitting out multiple times
+        sitout_score = 0
+        for player in sitting_players:
+            sitout_count = self.sitout_count[player]
+            # Exponential penalty: sitting out once is okay, but multiple times is heavily penalized
+            if sitout_count == 0:
+                sitout_score += 0  # No penalty for first sit-out
+            elif sitout_count == 1:
+                sitout_score += 10  # Heavy penalty for second sit-out
+            else:
+                sitout_score += 50 * (sitout_count - 1)  # Exponentially increasing penalty
+        
+        # Combine scores using weights to enforce priority order:
+        # SITOUT_WEIGHT >> PARTNERSHIP_WEIGHT >> OPPONENT_WEIGHT
+        return (sitout_score * SITOUT_WEIGHT + 
+                partnership_score * PARTNERSHIP_WEIGHT + 
+                opponent_score * OPPONENT_WEIGHT)
     
     def _update_history(self, team1: Tuple[str, str], team2: Tuple[str, str]):
-        """Update partnership and opponent history after a match."""
+        """Update partnership, opponent, and sit-out history after a match."""
         p1, p2 = team1
         p3, p4 = team2
+        playing_players = {p1, p2, p3, p4}
+        sitting_players = set(self.players) - playing_players
         
         # Update partnerships
         self.partnership_count[self._get_pair_key(p1, p2)] += 1
@@ -71,6 +109,10 @@ class MatchupGenerator:
         self.opponent_count[self._get_pair_key(p1, p4)] += 1
         self.opponent_count[self._get_pair_key(p2, p3)] += 1
         self.opponent_count[self._get_pair_key(p2, p4)] += 1
+        
+        # Update sit-out counts for players not in this match
+        for player in sitting_players:
+            self.sitout_count[player] += 1
     
     def generate_matchup(self) -> Tuple[Tuple[str, str], Tuple[str, str]]:
         """
@@ -126,13 +168,15 @@ class MatchupGenerator:
         return matchups
     
     def reset_history(self):
-        """Reset partnership and opponent tracking."""
+        """Reset partnership, opponent, and sit-out tracking."""
         self.partnership_count.clear()
         self.opponent_count.clear()
+        self.sitout_count.clear()
     
     def get_stats(self) -> dict:
-        """Get current statistics about partnerships and matchups."""
+        """Get current statistics about partnerships, matchups, and sit-outs."""
         return {
             'partnerships': dict(self.partnership_count),
-            'opponents': dict(self.opponent_count)
+            'opponents': dict(self.opponent_count),
+            'sitouts': dict(self.sitout_count)
         }

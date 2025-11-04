@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Badminton Manager{% endblock %}
+{% block page_id %}dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Dashboard</h1>
+    <p>Manage your badminton session configuration and status</p>
+</div>
+
+<!-- Session Status -->
+<div class="card-grid">
+    <div class="stat-card">
+        <div class="stat-label">Players</div>
+        <div class="stat-value" id="playerCount">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Matches</div>
+        <div class="stat-value" id="matchCount">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Sessions</div>
+        <div class="stat-value" id="sessionsCount">0</div>
+    </div>
+</div>
+
+<!-- Monthly Earnings -->
+<div class="card" id="monthlyEarningsCard">
+    <div class="card-header" id="monthlyEarningsHeader">Monthly Earnings</div>
+    <div class="session-earnings-mini" id="monthlyEarningsList">
+        <div style="color: var(--text-muted); font-size: 0.875rem; padding: 1rem;">Loading earnings...</div>
+    </div>
+</div>
+
+<!-- Quick Recap -->
+<div class="card" id="quickRecapCard">
+    <div class="card-header">Last Session</div>
+    <div id="quickRecapContent">
+        <div class="table-empty" style="padding: 1.5rem;">Loading recap...</div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card">
+    <div class="card-header">Quick Actions</div>
+    <div class="flex gap-2">
+        <a href="/players" class="btn btn-primary">Manage Players</a>
+        <a href="/stats" class="btn btn-secondary">View Statistics</a>
+    </div>
+</div>
+
+{% endblock %}
